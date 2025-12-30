@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Sonos Podcast Fix release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set version number"
+        run: |
+          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
+            "${{ github.workspace }}/custom_components/sonos/manifest.json"
+      - name: ZIP Sonos Dir
+        run: |
+          cd "${{ github.workspace }}/custom_components/sonos"
+          zip sonos.zip -r ./
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          files: ${{ github.workspace }}/custom_components/sonos/sonos.zip
